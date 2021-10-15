@@ -180,7 +180,6 @@ class _MyAppState extends State<MyApp> {
                         ScaffoldMessenger.of(context).showSnackBar(snackBar);
                       }
                     }
-
                   },
                   child: Container(
                     padding: EdgeInsets.symmetric(vertical: 15.0,horizontal: 70.0),

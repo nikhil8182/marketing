@@ -8,7 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:marketing/App.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:validators/validators.dart' as validator;
+//import 'package:validators/validators.dart' as validator;
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
 
@@ -35,16 +35,19 @@ class _ContentPageState extends State<ContentPage> {
   TextEditingController customerPhoneNum = TextEditingController();
   TextEditingController customerEmailId = TextEditingController();
   TextEditingController customerReview = TextEditingController();
+  TextEditingController customerAddress = TextEditingController();
   bool colorSts = false;
   bool  validate = false;
   int id = 1 ;
   List needs = [];
+  List valuesId = [];
   int count = 0;
   String formattedDate ;
   double ratingScore = 0;
   String marketer= " ";
   SharedPreferences loginData;
-
+  //List<String> mobNumVerify = [];
+ List mobNumVerify = [];
 
 
   final _formKey = GlobalKey<FormState>();
@@ -58,6 +61,7 @@ class _ContentPageState extends State<ContentPage> {
         'Phone Number': customerPhoneNum.text,
         'Email Id': customerEmailId.text,
         'Review': customerReview.text ,
+        'Address' : customerAddress.text,
         'lat' : lat,
         'lon ': lon,
         'rating' : ratingScore,
@@ -81,10 +85,16 @@ class _ContentPageState extends State<ContentPage> {
         Map<dynamic, dynamic> dataJson = snapshot.value;
         dataJson.forEach((key, values) {
           needs.add(key);
+          valuesId.add(values);
           count = needs.length;
-          id = count + 1;
+          id = valuesId[count-1]['Customer Id'];
+          id = id+1;
         });
       });
+      for(int i = 0; i<=count;i++){
+        String number = valuesId[i]['Phone Number'];
+        mobNumVerify.add(number);
+      }
     });
   }
 
@@ -104,6 +114,7 @@ class _ContentPageState extends State<ContentPage> {
     customerPhoneNum.dispose();
     customerEmailId.dispose();
     customerReview.dispose();
+    customerAddress.dispose();
     super.dispose();
   }
 
@@ -202,9 +213,21 @@ class _ContentPageState extends State<ContentPage> {
                       customer: customerEmailId,
                       height: height,
                       hintTxt: ' Email Id',
-                       validator: (String value) {
-                      if (!validator.isEmail(value)) {
-                        return 'Please enter a valid email';
+                    //    validator: (String value) {
+                    //   if (!validator.isEmail(value)) {
+                    //     return 'Please enter a valid email';
+                    //   }
+                    //   return null;
+                    // },
+                  ),
+                  CardCont(
+                    type: TextInputType.text,
+                    customer: customerAddress,
+                    height: height,
+                    hintTxt: ' Address ',
+                    validator: (String value) {
+                      if (value.isEmpty) {
+                        return 'please enter address';
                       }
                       return null;
                     },
@@ -288,14 +311,15 @@ class _ContentPageState extends State<ContentPage> {
                   ),
                   GestureDetector(
                     onTap: (){
-
                       if (_formKey.currentState.validate()) {
                         print("success fully validated");
-                        _showDialog();
+                          if(mobNumVerify.contains(customerPhoneNum.text)){
+                            _adminDialog();
+                          }
+                          else{
+                            _showDialog();
+                          }
                       }
-                      // createData();
-
-                      //Navigator.push(context, MaterialPageRoute(builder: (context)=>ContentPage()));
                     },
                     child: Center(
                       child: Container(
@@ -386,10 +410,12 @@ class _ContentPageState extends State<ContentPage> {
               onPressed: () {
                 createData();
                 Navigator.of(context).pop();
+                initial();
                 customerName.clear();
                 customerPhoneNum.clear();
                 customerEmailId.clear();
                 customerReview.clear();
+                customerAddress.clear();
                 final snackBar = SnackBar(content: Text(" successfully submitted "),
                 );
                 ScaffoldMessenger.of(context).showSnackBar(snackBar);
@@ -401,6 +427,35 @@ class _ContentPageState extends State<ContentPage> {
                 backgroundColor: MaterialStateProperty.all(Colors.white),
               ),
               child: new Text("cancel ", style: TextStyle(
+                  fontSize: MediaQuery.of(context).size.height*0.020, fontFamily: 'Avenir',
+                  color: Color.fromRGBO(247, 97, 28,1.0))),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+  _adminDialog() {
+    // flutter defined function
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+          title: Text('Oops !! Data Matches'),
+          content: Text(" If you want rewrite, kindly contact admin."),
+          actions: <Widget>[
+            // usually buttons at the bottom of the dialog
+            ElevatedButton(
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(Colors.white),
+              ),
+              child: new Text(" Thank you ", style: TextStyle(
                   fontSize: MediaQuery.of(context).size.height*0.020, fontFamily: 'Avenir',
                   color: Color.fromRGBO(247, 97, 28,1.0))),
               onPressed: () {
@@ -424,8 +479,6 @@ class CardCont extends StatelessWidget {
     this.validator,
     this.type,
     this.sts = true,
-
-
 
   }) : super(key: key);
 
